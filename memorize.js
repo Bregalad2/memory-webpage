@@ -118,10 +118,11 @@ function commandLoad (event) {
       resolve(data);
     }
   });
+  var key = versionKey[verses[0]]
 
   fetcher.open(
     'GET',
-    'https://api.scripture.api.bible/v1/bibles/${BIBLE_ID}/search?query=${}'
+    'https://api.scripture.api.bible/v1/bibles/'+key+'/search?query='+verses[1]+verses[2]+verses[3][0]
   );
   xhr.setRequestHeader('api-key', TOKEN);
   xhr.onerror = () => reject(xhr.statusText);
