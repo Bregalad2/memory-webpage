@@ -2,6 +2,8 @@ var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
 var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
 var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
 
+var TOKEN = "cb7ee6a078ba50116ec0fe3bd87a9a9b"
+
 var books = ['genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
 'joshua', 'judges', 'ruth', '1 samuel', '2 samuel', '1 kings',
 '2 kings', '1 chronicles', '2 chronicles', 'ezra', 'nehemiah',
@@ -14,6 +16,7 @@ var books = ['genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
 '2 timothy', 'titus', 'philemon', 'hebrews', 'james', '1 peter', '2 peter',
 '1 john', '2 john', '3 john', 'jude', 'revelation'
 ]
+
 var altBooks = {
   '1st samuel': '1 samuel',
   '2nd samuel': '2 samuel',
@@ -39,6 +42,10 @@ var nasb = ['NASB', 'nas', 'nasty', 'new american', 'n a s']
 var kjv = ['KJV', 'king james', 'kj', 'k j']
 
 var versions = [kjv, nasb, esv]
+var versionKey = {"NASB": "685d1470fe4d5c3b-01",
+  "ESV": "685d1470fe4d5c3b-01",
+  "KJV": "de4e12af7f28f599-01"
+}
 
 var recognition = new SpeechRecognition();
 recognition.continuous = true;
@@ -102,6 +109,24 @@ function onCommand (event) {
 function commandLoad (event) {
   var verses = verseRecognition(event);
   console.log(verses)
+  var fetcher = new XMLHttpRequest();
+  fetcher.withCredentials = false;
+  fetcher.addEventListener('readystatechange', function () {
+    if (this.readyState === this.DONE) {
+      const { data, meta } = JSON.parse(this.responseText);
+      _BAPI.t(meta.fumsId);
+      resolve(data);
+    }
+  });
+
+  fetcher.open(
+    'GET',
+    'https://api.scripture.api.bible/v1/bibles/${BIBLE_ID}/search?query=${}'
+  );
+  xhr.setRequestHeader('api-key', TOKEN);
+  xhr.onerror = () => reject(xhr.statusText);
+  xhr.send();
+
 }
 
 // recognise verses
