@@ -127,7 +127,8 @@ function commandLoad (event) {
   fetcher.setRequestHeader('api-key', TOKEN);
   fetcher.onerror = () => reject(fetcher.statusText);
   fetcher.send();
-
+  console.log(fetcher.responseText)
+  version.innerHTML = fetcher.responseText
 }
 
 // recognise verses
