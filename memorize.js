@@ -114,7 +114,7 @@ function commandLoad (event) {
   fetcher.addEventListener('readystatechange', function () {
     if (this.readyState === this.DONE) {
       const { data, meta } = JSON.parse(this.responseText);
-      _BAPI.t(meta.fumsId);
+      //_BAPI.t(meta.fumsId);
       resolve(data);
     }
   });
