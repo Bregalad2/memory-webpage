@@ -1,6 +1,7 @@
 var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
 var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
 var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
+var Speaker = new SpeechSynthesisUtterance();
 
 var TOKEN = "cb7ee6a078ba50116ec0fe3bd87a9a9b"
 
@@ -47,6 +48,10 @@ var versionKey = {"NASB": "685d1470fe4d5c3b-01",
   "KJV": "de4e12af7f28f599-01"
 }
 
+var queue = []
+var queueNumber = -1
+var learning = false
+
 var recognition = new SpeechRecognition();
 recognition.continuous = true;
 recognition.interimResults = true;
@@ -76,9 +81,14 @@ recognition.onresult = function(event) {
   var transcript = event.results[0][0].transcript;
   diagnostic.textContent = 'Last heard: ' + transcript + '.';
 
-  if (JSON.stringify(transcript).toLowerCase().includes('zahavi') || JSON.stringify(transcript).toLowerCase().includes('zahabi')) {
+  if (JSON.stringify(transcript).toLowerCase().includes('zahavi') ||
+    JSON.stringify(transcript).toLowerCase().includes('zahabi') ||
+    JSON.stringify(transcript).toLowerCase().includes('the hubby') ||
+    JSON.stringify(transcript).toLowerCase().includes('mojave') ||
+    JSON.stringify(transcript).toLowerCase().includes('the holly') ||
+    JSON.stringify(transcript).toLowerCase().includes('the hobby')) {
     onCommand(event)
-  }
+  } else if (learning) {onLearn(event)}
 
   console.log('Result: ' + transcript);
 }
@@ -90,18 +100,25 @@ recognition.onspeechend = function() {
 
 recognition.onnomatch = function(event) {
   diagnostic.textContent = "I didn't recognise that color.";
+  recognition.stop();
+  setTimeout(document.body.onclick, 100)
 }
 
 recognition.onerror = function(event) {
   diagnostic.textContent = 'Error occurred in recognition: ' + event.error;
   console.log(event.error)
+  recognition.stop();
+  setTimeout(document.body.onclick, 100)
 }
 
-//onCommand: runs when Silas is heard
+//onCommand: runs when zahavi is heard
 function onCommand (event) {
   var transcript = JSON.stringify(event.results[0][0].transcript);
   if (transcript.toLowerCase().includes('load')||transcript.toLowerCase().includes('learn')) {
     commandLoad(event);
+  }
+  if (transcript.toLowerCase().includes('start')||transcript.toLowerCase().includes('go')) {
+    commandStart(event);
   }
 }
 
@@ -114,21 +131,52 @@ function commandLoad (event) {
   fetcher.addEventListener('readystatechange', function () {
     if (this.readyState === this.DONE) {
       const { data, meta } = JSON.parse(this.responseText);
-      //_BAPI.t(meta.fumsId);
-      resolve(data);
+      console.log(data)
+      version.innerHTML = data["passages"][0]["content"]
+      var content = JSON.stringify(data["passages"][0]["content"]).split("</span>")[1].split("</p>")[0]
+      data["passages"].forEach(element => {
+        queue.push(element["content"].split("</span>")[1].split("</p>")[0])
+      });
+      console.log(queue)
     }
   });
   var key = versionKey[verses[0]]
 
   fetcher.open(
     'GET',
-    'https://api.scripture.api.bible/v1/bibles/'+key+'/search?query='+verses[1]+verses[2]+verses[3][0]
+    'https://api.scripture.api.bible/v1/bibles/'+key+'/search?query='+verses[1]+'.'+verses[2]+'.'+verses[3].join("+"+verses[1]+'.'+verses[2]+'.')
   );
   fetcher.setRequestHeader('api-key', TOKEN);
   fetcher.onerror = () => reject(fetcher.statusText);
   fetcher.send();
-  console.log(fetcher.responseText)
-  version.innerHTML = fetcher.responseText
+  }
+
+// the command for start / go
+function commandStart (event) {
+  if (!queue) {
+    sayThis("you have to load verses first. use the zehavi load command.");
+  }
+  queueNumber = 0
+  learning = true
+}
+
+//while learning a verse
+function onLearn (event) {
+  console.log("Learning")
+  var transcript = JSON.stringify(event.results[0][0].transcript);
+  var splitScript = queue[0].split(/[;:.!(),"]+/).filter(e => e !== ' ')
+  console.log(splitScript)
+  var fuzzyQueue = FuzzySet(splitScript)
+  var sectionNumber = splitScript.indexOf(fuzzyQueue.get(transcript)[0][1])
+  if (splitScript[sectionNumber] == splitScript[-1]) {
+    sayThis(queue[0]);
+  } else {sayThis(splitScript[sectionNumber])}
+}
+
+//say something
+function sayThis (message) {
+  Speaker.text = message;
+  window.speechSynthesis.speak(Speaker);
 }
 
 // recognise verses
