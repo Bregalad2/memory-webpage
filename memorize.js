@@ -49,7 +49,7 @@ var versionKey = {"NASB": "685d1470fe4d5c3b-01",
 }
 
 var queue = []
-var queueNumber = -1
+var queueNumber = 0
 var learning = false
 
 var recognition = new SpeechRecognition();
@@ -95,13 +95,14 @@ recognition.onresult = function(event) {
 
 recognition.onspeechend = function() {
   recognition.stop();
-  setTimeout(document.body.onclick, 200)
+}
+recognition.onend = function() {
+  setTimeout(document.body.onclick, 100)
 }
 
 recognition.onnomatch = function(event) {
-  diagnostic.textContent = "I didn't recognise that color.";
+  diagnostic.textContent = "I didn't recognise that.";
   recognition.stop();
-  setTimeout(document.body.onclick, 200)
 }
 
 recognition.onerror = function(event) {
@@ -113,12 +114,19 @@ recognition.onerror = function(event) {
 //onCommand: runs when zahavi is heard
 function onCommand (event) {
   var transcript = JSON.stringify(event.results[0][0].transcript);
-  if (transcript.toLowerCase().includes('load')||transcript.toLowerCase().includes('learn')) {
+  if (
+    transcript.toLowerCase().includes('load')||
+    transcript.toLowerCase().includes('learn')) 
+  {
     commandLoad(event);
-  } else if (transcript.toLowerCase().includes('start')||transcript.toLowerCase().includes('go')) {
+  } else if (
+    transcript.toLowerCase().includes('start') ||
+    transcript.toLowerCase().includes('go') ||
+    transcript.toLowerCase().includes('stat'))
+   {
     commandStart(event);
   } else {
-    sayThis("I didn't quite hear what you said.")
+    sayThis("I didn't hear that.")
   }
 }
 
@@ -153,12 +161,14 @@ function commandLoad (event) {
   }
 
 // the command for start / go
-function commandStart (event) {
+function commandStart (event, restart = false) {
   if (queue == []) {
     sayThis("you have to load verses first. use the zehavi load command.");
   } else {sayThis(queue[0])}
-  queueNumber = 0
   learning = true
+  if (restart) {
+    queueNumber = 0
+  }
 }
 
 //while learning a verse
