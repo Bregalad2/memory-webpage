@@ -97,12 +97,6 @@ recognition.onnomatch = function(event) {
   recognition.stop();
 }
 
-recognition.onerror = function(event) {
-  diagnostic.textContent = 'Error occurred in recognition: ' + event.error;
-  console.log(event.error)
-  recognition.stop();
-}
-
 //onCommand: runs when zahavi is heard
 function onCommand (event) {
   var transcript = JSON.stringify(event.results[0][0].transcript);
