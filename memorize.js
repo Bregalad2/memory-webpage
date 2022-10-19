@@ -87,10 +87,9 @@ recognition.onresult = function(event) {
 
 recognition.onspeechend = function() {
   recognition.stop();
-  setTimeout(document.body.onclick, 100)
-
 }
 recognition.onend = function() {
+  setTimeout(document.body.onclick, 100)
 }
 
 recognition.onnomatch = function(event) {
