@@ -51,7 +51,6 @@ var versionKey = {"NASB": "685d1470fe4d5c3b-01",
 var queue = []
 var queueNumber = -1
 var learning = false
-var interm = true
 
 var recognition = new SpeechRecognition();
 recognition.continuous = true;
@@ -68,20 +67,17 @@ var bg = document.querySelector('html');
 
 document.body.onclick = function() {
   recognition.start();
-  onTick()
-}
-
-function onTick () {
-  setTimeout(onTick, 400)
-  if (!interm) {
-    try {
-    recognition.start();
-    } catch (e) {}
-  }
 }
 
 recognition.onresult = function(event) {
-  interm = event.isFinal
+  // The SpeechRecognitionEvent results property returns a SpeechRecognitionResultList object
+  // The SpeechRecognitionResultList object contains SpeechRecognitionResult objects.
+  // It has a getter so it can be accessed like an array
+  // The first [0] returns the SpeechRecognitionResult at the last position.
+  // Each SpeechRecognitionResult object contains SpeechRecognitionAlternative objects that contain individual results.
+  // These also have getters so they can be accessed like arrays.
+  // The second [0] returns the SpeechRecognitionAlternative at position 0.
+  // We then return the transcript property of the SpeechRecognitionAlternative object
   var transcript = event.results[0][0].transcript;
   diagnostic.textContent = 'Last heard: ' + transcript + '.';
 
@@ -99,17 +95,20 @@ recognition.onresult = function(event) {
 
 recognition.onspeechend = function() {
   recognition.stop();
+  setTimeout(document.body.onclick, 200)
 }
 
 recognition.onnomatch = function(event) {
   diagnostic.textContent = "I didn't recognise that color.";
   recognition.stop();
+  setTimeout(document.body.onclick, 200)
 }
 
 recognition.onerror = function(event) {
   diagnostic.textContent = 'Error occurred in recognition: ' + event.error;
   console.log(event.error)
   recognition.stop();
+  setTimeout(document.body.onclick, 200)
 }
 
 //onCommand: runs when zahavi is heard
