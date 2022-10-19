@@ -67,6 +67,14 @@ var bg = document.querySelector('html');
 
 document.body.onclick = function() {
   recognition.start();
+  onTick()
+}
+
+function onTick () {
+  setTimeout(onTick, 400)
+  try{
+    var a = recognition.start()
+  }catch(e){}
 }
 
 recognition.onresult = function(event) {
@@ -95,20 +103,17 @@ recognition.onresult = function(event) {
 
 recognition.onspeechend = function() {
   recognition.stop();
-  setTimeout(document.body.onclick, 100)
 }
 
 recognition.onnomatch = function(event) {
   diagnostic.textContent = "I didn't recognise that color.";
   recognition.stop();
-  setTimeout(document.body.onclick, 100)
 }
 
 recognition.onerror = function(event) {
   diagnostic.textContent = 'Error occurred in recognition: ' + event.error;
   console.log(event.error)
   recognition.stop();
-  setTimeout(document.body.onclick, 100)
 }
 
 //onCommand: runs when zahavi is heard
@@ -165,7 +170,7 @@ function onLearn (event) {
   var splitScript = queue[0].split(/[;:.!(),"]+/).filter(e => e !== ' ')
   var fuzzyQueue = FuzzySet(splitScript)
   var sectionNumber = splitScript.indexOf(fuzzyQueue.get(transcript)[0][1])
-  var accuracy = FuzzySet([queue[0].toLowerCase()]).get(transcript.toLowerCase())[0][0]
+  var accuracy = FuzzySet([queue[0].toLowerCase()]).get(transcript.toLowerCase())[0][0] || 0.0;
   console.log(accuracy);
   if (accuracy >= 0.8) {
     sayThis(JSON.stringify(accuracy)[2]+JSON.stringify(accuracy)[3]+" percent accurate. ")
@@ -173,7 +178,7 @@ function onLearn (event) {
   } else if (sectionNumber == splitScript.length - 1) {
     sayThis(queue[0])
   } else {
-    sayThis(splitScript[sectionNumber])
+    sayThis(splitScript.slice(sectionNumber))
   }
 }
 
