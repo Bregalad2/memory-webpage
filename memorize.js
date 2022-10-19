@@ -108,7 +108,6 @@ recognition.onerror = function(event) {
   diagnostic.textContent = 'Error occurred in recognition: ' + event.error;
   console.log(event.error)
   recognition.stop();
-  setTimeout(document.body.onclick, 200)
 }
 
 //onCommand: runs when zahavi is heard
