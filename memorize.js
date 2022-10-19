@@ -70,14 +70,6 @@ document.body.onclick = function() {
 }
 
 recognition.onresult = function(event) {
-  // The SpeechRecognitionEvent results property returns a SpeechRecognitionResultList object
-  // The SpeechRecognitionResultList object contains SpeechRecognitionResult objects.
-  // It has a getter so it can be accessed like an array
-  // The first [0] returns the SpeechRecognitionResult at the last position.
-  // Each SpeechRecognitionResult object contains SpeechRecognitionAlternative objects that contain individual results.
-  // These also have getters so they can be accessed like arrays.
-  // The second [0] returns the SpeechRecognitionAlternative at position 0.
-  // We then return the transcript property of the SpeechRecognitionAlternative object
   var transcript = event.results[0][0].transcript;
   diagnostic.textContent = 'Last heard: ' + transcript + '.';
 
@@ -95,9 +87,10 @@ recognition.onresult = function(event) {
 
 recognition.onspeechend = function() {
   recognition.stop();
+  setTimeout(document.body.onclick, 100)
+
 }
 recognition.onend = function() {
-  setTimeout(document.body.onclick, 100)
 }
 
 recognition.onnomatch = function(event) {
@@ -162,28 +155,37 @@ function commandLoad (event) {
 
 // the command for start / go
 function commandStart (event, restart = false) {
-  if (queue == []) {
+  queueNumber = 0
+  if (queue[queueNumber] == undefined) {
     sayThis("you have to load verses first. use the zehavi load command.");
-  } else {sayThis(queue[0])}
+  } else {sayThis(queue[queueNumber])}
   learning = true
   if (restart) {
-    queueNumber = 0
   }
+}
+
+// the command for next
+function commandStart (event, restart = false) {
+  queueNumber += 1
+  if (!queue[queue]) {
+    sayThis("you have reached the end of your queue. use the zehavi restart or load command.");
+  } else {sayThis(queue[queueNumber])}
+  learning = true
 }
 
 //while learning a verse
 function onLearn (event) {
   var transcript = JSON.stringify(event.results[0][0].transcript);
-  var splitScript = queue[0].split(/[;:.!(),"]+/).filter(e => e !== ' ')
+  var splitScript = queue[queueNumber].split(/[;:.!(),"]+/).filter(e => e !== ' ')
   var fuzzyQueue = FuzzySet(splitScript)
   var sectionNumber = splitScript.indexOf(fuzzyQueue.get(transcript)[0][1])
-  var accuracy = FuzzySet([queue[0].toLowerCase()]).get(transcript.toLowerCase())[0][0] || 0.1;
+  var accuracy = FuzzySet([queue[queueNumber].toLowerCase()]).get(transcript.toLowerCase())[0][0] || 0.1;
   console.log(accuracy);
   if (accuracy >= 0.8) {
     sayThis(JSON.stringify(accuracy)[2]+JSON.stringify(accuracy)[3]+" percent accurate. ")
-    sayThis(queue[0]);
+    sayThis(queue[queueNumber]);
   } else if (sectionNumber == splitScript.length - 1) {
-    sayThis(queue[0])
+    sayThis(queue[queueNumber])
   } else {
     sayThis(splitScript.slice(sectionNumber))
   }
