@@ -117,6 +117,8 @@ function onCommand (event) {
     commandLoad(event);
   } else if (transcript.toLowerCase().includes('start')||transcript.toLowerCase().includes('go')) {
     commandStart(event);
+  } else {
+    sayThis("I didn't quite hear what you said.")
   }
 }
 
@@ -136,6 +138,7 @@ function commandLoad (event) {
         queue.push(element["content"].split("</span>")[1].split("</p>")[0])
       });
       console.log(queue)
+      sayThis("added "+verses[1]+' '+verses[2]+':'+verses[3].join("+"+verses[1]+' '+verses[2]+':')+" to the queue")
     }
   });
   var key = versionKey[verses[0]]
@@ -151,9 +154,9 @@ function commandLoad (event) {
 
 // the command for start / go
 function commandStart (event) {
-  if (!queue) {
+  if (queue == []) {
     sayThis("you have to load verses first. use the zehavi load command.");
-  }
+  } else {sayThis(queue[0])}
   queueNumber = 0
   learning = true
 }
@@ -164,7 +167,7 @@ function onLearn (event) {
   var splitScript = queue[0].split(/[;:.!(),"]+/).filter(e => e !== ' ')
   var fuzzyQueue = FuzzySet(splitScript)
   var sectionNumber = splitScript.indexOf(fuzzyQueue.get(transcript)[0][1])
-  var accuracy = FuzzySet([queue[0].toLowerCase()]).get(transcript.toLowerCase())[0][0] || 0.0;
+  var accuracy = FuzzySet([queue[0].toLowerCase()]).get(transcript.toLowerCase())[0][0] || 0.1;
   console.log(accuracy);
   if (accuracy >= 0.8) {
     sayThis(JSON.stringify(accuracy)[2]+JSON.stringify(accuracy)[3]+" percent accurate. ")
