@@ -51,6 +51,7 @@ var versionKey = {"NASB": "685d1470fe4d5c3b-01",
 var queue = []
 var queueNumber = -1
 var learning = false
+var interm = true
 
 var recognition = new SpeechRecognition();
 recognition.continuous = true;
@@ -72,20 +73,15 @@ document.body.onclick = function() {
 
 function onTick () {
   setTimeout(onTick, 400)
-  try{
-    var a = recognition.start()
-  }catch(e){}
+  if (!interm) {
+    try {
+    recognition.start();
+    } catch (e) {}
+  }
 }
 
 recognition.onresult = function(event) {
-  // The SpeechRecognitionEvent results property returns a SpeechRecognitionResultList object
-  // The SpeechRecognitionResultList object contains SpeechRecognitionResult objects.
-  // It has a getter so it can be accessed like an array
-  // The first [0] returns the SpeechRecognitionResult at the last position.
-  // Each SpeechRecognitionResult object contains SpeechRecognitionAlternative objects that contain individual results.
-  // These also have getters so they can be accessed like arrays.
-  // The second [0] returns the SpeechRecognitionAlternative at position 0.
-  // We then return the transcript property of the SpeechRecognitionAlternative object
+  interm = event.isFinal
   var transcript = event.results[0][0].transcript;
   diagnostic.textContent = 'Last heard: ' + transcript + '.';
 
